@@ -86,17 +86,6 @@ def savePyxlImage(pyxl, path='imgs'):
                     progressive=True
                    )
 
-def shiftRGB(old, new, shift):
-    '''
-    Shifts an RGB towards a new value.
-
-    Shift can be anything that returns an integer or float.
-    '''
-
-    change = lambda x: (x[1] * shift) + (x[0] * (1-shift))
-
-    return tuple([change(x) for x in zip(old,new)])
-
 class Pyxl(object):
     '''
     This class builds an image based on a series of inputs. 
