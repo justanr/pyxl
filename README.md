@@ -53,6 +53,21 @@ Simple, no? There are three options for images:
 
 Pyxl deals with converting hex codes to RGB tuples for you. It'll even extend shorthand codes like `f00` to `ff0000` and `f0` to `f0f0f0`. And, if you happen to accidentally forget a number (or put one too many), Pyxl'll handle that too: either padding with zeroes or truncating where needed.
 
+When working with Pyxl, there's only four things you really need to know:
+
+1. Building a new Pyxl object.
+2. Drawing the image by calling pyxl.draw()
+3. Saving the image with savePyxlImage()
+4. And maybe checking what the image name will be with buildPyxlName()
+
+If you really want to, there's a handful of getters as well:
+
+1. Pyxl.getInfo() will return the string representation of Pyxl.info.
+2. Pyxl.getSize() will return the string representation of Pyxl.size, including expanding it to two dimensions if one was passed.
+3. Pyxl.getOptions() will return the string representation of Pyxl.options, including sorting the options by name and stripping out any invalid options.
+
+These are used in buildPyxlName to construct the hash name for the image, but you might use them for storing information in a database or adding EXIF data to the image.
+
 ###Options
 Pyxl is constructed from three bits: `info`, `size` and `options`. Info is covered above, and size is obvious (you can pass either one dimension for a square or two for a rectangle). However, options has, well, options:
 
