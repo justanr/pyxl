@@ -7,6 +7,8 @@ This is just the Pyxl code, a font and it's tests rather than implementing it in
 
 For flask you might use (pardon if it's not completely proper):
 ```
+from pyxl import Pyxl, buildPyxlName, savePyxlImage
+
 @app.route('/<info>/<size>/', defaults={'options':None})
 @app.route('/<info>/<size>/<options>')
 def makeImage(info, size, options):
@@ -44,6 +46,7 @@ savePyxlImage(p)
 ```
 
 Simple, no? There are three options for images:
+
 1. color: Just pass a single color hex code to pyxl with this prefix.
 2. gradient: Pass two color hex codes with this prefix, you can also specify a horizontal gradient by add ',h' to the hex codes.
 3. flickr: Pass a series of comma delimited tags to Pyxl. This is a work in progress, currently and pyxl.drawFlickr currently does nothing.
