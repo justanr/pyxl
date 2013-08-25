@@ -1,7 +1,7 @@
 Pyxl
 ====
 
-This is the source code for Pyxl, a python implementation of (PixelHoldr)[https://github.com/chrisdingli/PixelHoldr] by (Christopher Dingli)[https://github.com/chrisdingli].
+This is the source code for Pyxl, a python implementation of [PixelHoldr](https://github.com/chrisdingli/PixelHoldr) by [Christopher Dingli](https://github.com/chrisdingli).
 
 This is just the Pyxl code, a font and it's tests rather than implementing it into any Python framework -- something that should be incredibly trivial.
 
