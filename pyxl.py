@@ -86,6 +86,7 @@ def savePyxlImage(pyxl, path='imgs'):
                     progressive=True
                    )
 
+<<<<<<< HEAD
 def shiftRGB(old, new, shift):
     '''
     Shifts an RGB towards a new value.
@@ -97,6 +98,8 @@ def shiftRGB(old, new, shift):
 
     return tuple(map(change, zip(old, new)))
 
+=======
+>>>>>>> origin/master
 class Pyxl(object):
     '''
     This class builds an image based on a series of inputs. 
