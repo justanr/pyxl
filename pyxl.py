@@ -93,9 +93,9 @@ def shiftRGB(old, new, shift):
     Shift can be anything that returns an integer or float.
     '''
 
-    change = lambda x: (x[1] * shift) + (x[0] * (1-shift))
+    change = lambda x: (x[1]*shift)+(x[0]*(1-shift))
 
-    return tuple(map(change, zip(old,new)))
+    return tuple(map(change, zip(old, new)))
 
 class Pyxl(object):
     '''
@@ -290,6 +290,10 @@ class Pyxl(object):
                         option[1] = self.defaults['colors'][0]        
                 elif option[0] == 'dimensions':
                     option[1] = 'hide'
+
+                elif option[0] == 'seed' and self.info['type'] != 'flickr':
+                    # There's no point in a seed for a none flickr image
+                    continue
                 
                 self.options[option[0]] =  option[1]
         
@@ -392,6 +396,12 @@ class Pyxl(object):
 
     def drawFlickr(self):
         '''Creates an image based on a flickr image.'''
+        pass
+
+    def getFlickrImage(self):
+        '''
+        Retrieves a single flickr image based on Pyxl.info['tags']
+        '''
         pass
 
     def drawDimensions(self):
