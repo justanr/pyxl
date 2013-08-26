@@ -80,7 +80,7 @@ def savePyxlImage(pyxl, path='imgs'):
 
     ImageFile.MAXBLOCK = pyxl.image.size[0] * pyxl.image.size[1]
 
-    fullpath = join(path, buildPyxlName(p))
+    fullpath = join(path, buildPyxlName(pyxl))
 
     pyxl.image.save(fullpath, 'JPEG', optimize=True,
                     progressive=True
@@ -95,7 +95,7 @@ def shiftRGB(old, new, shift):
 
     change = lambda x: (x[1] * shift) + (x[0] * (1-shift))
 
-    return tuple([change(x) for x in zip(old,new)])
+    return tuple(map(change, zip(old,new)))
 
 class Pyxl(object):
     '''
@@ -366,13 +366,9 @@ class Pyxl(object):
             distance = height
 
         # again, easier to work with
-        # start and initial rgb values  are always the same value
-        rgb = startFill = self.info['colors'][0]
-        stopFill  = self.info['colors'][1]
-
-        # the difference between each pixel for the gradient
-        diff = calcGradDiff(startFill, stopFill, distance)
-        
+        start = self.info['colors'][0]
+        stop = self.info['colors'][1]
+       
         # make a new blank image
         self.image = Image.new('RGB', self.size, hexToRGB('ffffff'))
         draw = ImageDraw.Draw(self.image)
@@ -384,15 +380,13 @@ class Pyxl(object):
                 pos = (i, 0, i, height)
             else:
                 pos = (0, i, width, i)
-            
-            fill = tuple(map(int, map(round,rgb)))
-
-            draw.line(pos, fill=fill) 
-            
+ 
             # move the start color closer to the end color
-            # rgb = shiftRGB(rgb,stopFill, float(i/distance))
-            rgb = tuple([sum(x) for x in zip(rgb,diff)])
+            rgb = shiftRGB(start, stop, float(i)/distance)
+            fill = tuple(map(int, map(round, rgb)))
 
+            draw.line(pos, fill=fill)
+            
         if 'dimensions' not in self.options:
             self.drawDimensions()
 
