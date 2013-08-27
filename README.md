@@ -10,7 +10,7 @@ For flask you might use (pardon if it's not completely proper):
 from pyxl import Pyxl, buildPyxlName, savePyxlImage
 
 @app.route('/<info>/<size>/', defaults={'options':None})
-@app.route('/<info>/<size>/<options>')
+@app.route('/<info>/<size>/<options>/')
 def makeImage(info, size, options):
     # lazy import like a boss
     from os.path import join, isfile
@@ -23,15 +23,31 @@ def makeImage(info, size, options):
     if not isfile(fullpath)
         p.draw()
         savePyxlImage(p, path)
-    
-    with open(fullpath) as f:
-        image = f.read()
+        image = p.image
+
+    else:
+        with open(fullpath) as f:
+            image = f.read()
 
     resp = make_response(image)
     resp.headers['content_type'] = 'image/jpeg'
 
     return resp
 ```
+
+Pyxl is smart enough to not do any heavy lifting if it doesn't have to. Already got an image built from these settings? Pyxl doesn't need to do a thing. It's also smart enough to keep image duplication low:
+
+```
+p = Pyxl('toy,cat', '300', None)
+```
+
+will produce the same output (including file name hash) as:
+
+```
+p = Pyxl('cat',toy', '300', None)
+```
+
+Flickr tags and options keys are both sorted before generating a file name so you don't need to worry about someone remembering what order they put those in. Pyxl does it for them (and for your server).
 
 Usage
 -----
@@ -107,4 +123,12 @@ p = Pyxl('gradient:a63f7f,45d31a,h', '2500', 'font:liberationmono-bold', '/usr/s
 
 Installation
 ------------
-Working on this.
+Pyxl has a few requirements.
+1. PIL or Pillow with JPEG support.
+2. The FlickrAPI.
+
+However, these are easy enough to install. PIL may have to be installed after installing a JPEG library, though. Double check your setup.
+
+After that, pop over to the (Flickr API page)[http://www.flickr.com/services/api/] to get an API key. Add that `flickrapi.json` (make sure you strip .sample from the end of that file).
+
+You should be good to go.
