@@ -5,10 +5,10 @@ This simple module consists of the Pyxl class and a few helper functions.
 from os.path import basename, join
 from glob import glob
 
-from PIL import Image, ImageDraw, ImageFont
-
-#import flickrapi
-
+try:
+    import Image, ImageDraw, ImageFont, ImageFile
+except ImportError:
+    from PIL import Image, ImageDraw, ImageFont, ImageFile
 
 #Helper functions.
 
@@ -76,15 +76,11 @@ def savePyxlImage(pyxl, path='imgs'):
     A simple save function for pyxl. Consider replacing with your own.
     '''
 
-    import ImageFile
-
     ImageFile.MAXBLOCK = pyxl.image.size[0] * pyxl.image.size[1]
 
     fullpath = join(path, buildPyxlName(pyxl))
 
-    pyxl.image.save(fullpath, 'JPEG', optimize=True,
-                    progressive=True
-                   )
+    pyxl.image.save(fullpath, 'JPEG')
 
 def shiftRGB(old, new, shift):
     '''
@@ -154,7 +150,7 @@ class Pyxl(object):
         # No colon found, we want to contact flickr
         if info.find(':') == -1:
             self.info['type'] = 'flickr'
-            self.info['tags'] = info.split(',')
+            self.info['tags'] = sorted(info.split(','))
             self.draw = self.drawFlickr
         
         # We are building an image with PIL
@@ -364,14 +360,10 @@ class Pyxl(object):
         width = self.size[0]
         
         # set the correct distance
-        if self.info['type'] == 'hgradient':
-            distance = width
-        else:
-            distance = height
+        distance = width if self.info['type'] == 'hgradient' else height
 
         # again, easier to work with
-        start = self.info['colors'][0]
-        stop = self.info['colors'][1]
+        start, stop  = self.info['colors']
        
         # make a new blank image
         self.image = Image.new('RGB', self.size, hexToRGB('ffffff'))
@@ -402,7 +394,33 @@ class Pyxl(object):
         '''
         Retrieves a single flickr image based on Pyxl.info['tags']
         '''
-        pass
+        
+        # lazy import like a boss
+        # these are aren't needed for any other part of the script
+        # so we'll just import them here.
+        import json, urllib2, StringIO, flickrapi
+
+        with open('flickrapi.json') as f:
+            key = json.loads(f.read())
+
+        flickr = flickrapi.FlickrAPI(key['api_key'])
+
+        rsp = flickr.photos_search(
+                tags=self.info['tags'], tag_mode='all',
+                license='5,7', per_page=1)
+
+        if rsp.attrib['stat'] == 'ok':
+            if len(rsp.getchildren()[0].getchildren()) == 1:
+                photo = rsp.getchildren()[0][0]
+
+                url = "http://farm{farm}.staticflickr.com/{server}/{id}_{secret}_b.jpg"
+
+                uri = urllib2.urlopen(url.format(**photo.attrib))
+                self.uri = StringIO.StringIO(uri.read())
+
+                self.uri.seek(0)
+
+                self.image = Image.open(self.uri)
 
     def drawDimensions(self):
         '''Creates the dimensions image.'''
@@ -416,8 +434,9 @@ class Pyxl(object):
 
         while (font.getsize(text)[0] < int(self.size[0] * img_fraction)) and \
             (font.getsize(text)[1] < int(self.size[1]*img_fraction)):
-            size += 1
+            
             font = ImageFont.truetype(self.options['font'], size)
+            size += 1
 
         font = ImageFont.truetype(self.options['font'], size)
 
