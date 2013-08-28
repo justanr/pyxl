@@ -59,16 +59,19 @@ def calcGradDiff(startFill, stopFill, distance):
 
     return tuple((stopFill[x] - startFill[x])/distance for x in range(3))
 
-def buildPyxlName(pyxl):
+def buildPyxlName(pyxl, hasher=None):
     '''
-    Builds an MD5 hash from Pyxl.getInfo, Pyxl.getSize and Pyxl.getOptions
+    Builds a name from Pyxl.getInfo, Pyxl.getSize and Pyxl.getOptions.
+    Optionally, it can be hashed by passing a function that has the 
+    hexdigest method.
     '''
-
-    from hashlib import md5
     
     name = '{}-{}-{}'.format(pyxl.getInfo(), pyxl.getSize(), pyxl.getOptions())
 
-    return md5(name).hexdigest() + ".jpg"
+    if hasher is not None:
+        name = hasher(name).hexdigest()
+
+    return name+".jpg"
 
 
 def savePyxlImage(pyxl, path='imgs'):
@@ -91,7 +94,22 @@ def shiftRGB(old, new, shift):
 
     change = lambda x: (x[1]*shift)+(x[0]*(1-shift))
 
-    return tuple(map(change, zip(old, new)))
+    return tuple(change(x) for x in zip(old, new))
+
+
+def smartResize(image, size):
+    '''
+    Intelligently resize an image.
+    WIP.
+    '''
+
+    # Is our image bigger than our new size?
+    if  (image.size[0] > size[0]) and (image.size[1] > size[1]):
+        begin = ((image.[0]-size[0])/2, (image.size[1]-size[1])/2)
+        
+        box = begin[0], begin[1], begin[0]+size[0], begin[1]+size[1]
+
+        return image.crop(box)
 
 class Pyxl(object):
     '''
@@ -379,7 +397,7 @@ class Pyxl(object):
  
             # move the start color closer to the end color
             rgb = shiftRGB(start, stop, float(i)/distance)
-            fill = tuple(map(int, map(round, rgb)))
+            fill = tuple([int(round(x)) for x in rgb])
 
             draw.line(pos, fill=fill)
             
@@ -388,7 +406,7 @@ class Pyxl(object):
 
     def drawFlickr(self):
         '''Creates an image based on a flickr image.'''
-        pass
+        self.getFlickrImage()
 
     def getFlickrImage(self):
         '''
