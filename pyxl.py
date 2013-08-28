@@ -419,6 +419,21 @@ class Pyxl(object):
         '''Creates an image based on a flickr image.'''
         self.getFlickrImage()
 
+        size = 10
+        font = ImageFont.truetype(self.options['font'], size)
+
+        text = 'Copyright {}.'.format(self.info['user'])
+
+        pos = ( (self.size[0] - font.getsize(text))/2,
+                (self.size[1] - 2)
+              )
+
+        draw = ImageDraw.Draw(self.image)
+        draw.text(pos, text, font=font, fill=self.options['text'])
+
+        if 'dimensions' not in self.options:
+            self.drawDimensions()
+
     def getFlickrImage(self):
         '''
         Retrieves a single flickr image based on Pyxl.info['tags']
@@ -437,7 +452,8 @@ class Pyxl(object):
         rsp = flickr.photos_search(
                 tags=self.info['tags'], tag_mode='all',
                 license='5,7', per_page=1)
-
+        
+        # TODO: add what happens if the request isn't good or there aren't kids.
         if rsp.attrib['stat'] == 'ok':
             if len(rsp.getchildren()[0].getchildren()) == 1:
                 photo = rsp.getchildren()[0][0]
@@ -450,6 +466,12 @@ class Pyxl(object):
                 self.uri.seek(0)
 
                 self.image = Image.open(self.uri)
+
+                rsp = flickr.people_getInfo(user_id=photo.attrib['owner'])
+                person = rsp.getchildren()[0]
+
+                # username, finally
+                self.info['user'] = person.getchildren()[0].text
 
     def drawDimensions(self):
         '''Creates the dimensions image.'''
@@ -466,8 +488,6 @@ class Pyxl(object):
             
             font = ImageFont.truetype(self.options['font'], size)
             size += 1
-
-        font = ImageFont.truetype(self.options['font'], size)
 
         pos = ( (self.size[0] - font.getsize(text)[0])/2,
                 (self.size[1] - font.getsize(text)[1])/2
