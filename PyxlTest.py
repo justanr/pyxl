@@ -40,7 +40,7 @@ class PyxlTestCase(unittest.TestCase):
             )
 
         self.assertDictEqual(
-            {'type':'flickr', 'tags':['farm', 'animal']},
+            {'type':'flickr', 'tags':['animal', 'farm']},
             self.flickr.info
             )
 
@@ -59,7 +59,9 @@ class PyxlTestCase(unittest.TestCase):
     def testPyxlGetInfo(self):
         self.assertEqual('gradient:ffffff,000000', self.gradient.getInfo())
         self.assertEqual('color:ffffff', self.solid.getInfo())
-        self.assertEqual('farm,animal', self.flickr.getInfo())
+
+        self.assertNotEqual('farm,animal', self.flickr.getInfo())
+        self.assertEqual('animal,farm', self.flickr.getInfo())
     
     def testPyxlSetSize(self):
         self.assertTupleEqual( (300,300), self.solid.size)
@@ -120,7 +122,7 @@ class PyxlTestCase(unittest.TestCase):
         
         name = md5('{}-{}-{}'.format('color:ffffff', '300x300', 'font:liberationsans,text:ffffff')).hexdigest() + '.jpg'
 
-        self.assertEqual(name, buildPyxlName(self.solid))
+        self.assertEqual(name, buildPyxlName(self.solid, md5))
 
 if __name__ == '__main__':
     unittest.main()
