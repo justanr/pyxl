@@ -74,14 +74,17 @@ def buildPyxlName(pyxl, hasher=None):
     return name+".jpg"
 
 
-def savePyxlImage(pyxl, path='imgs'):
+def savePyxlImage(pyxl, **kwargs):
     '''
     A simple save function for pyxl. Consider replacing with your own.
     '''
 
+    path = kwargs.get('path', 'imgs')
+    hasher = kwargs.get('hasher', None)
+
     ImageFile.MAXBLOCK = pyxl.image.size[0] * pyxl.image.size[1]
 
-    fullpath = join(path, buildPyxlName(pyxl))
+    fullpath = join(path, buildPyxlName(pyxl, hasher))
 
     pyxl.image.save(fullpath, 'JPEG')
 
@@ -96,20 +99,28 @@ def shiftRGB(old, new, shift):
 
     return tuple(change(x) for x in zip(old, new))
 
-
-def smartResize(image, size):
+def smartShape(oldsize, newsize):
     '''
-    Intelligently resize an image.
+    Intelligently shape an  image.
     WIP.
     '''
+    
+    # determine ratios 
+    rx = oldsize[0]/float(newsize[0])
+    ry = oldsize[1]/float(newsize[1])
 
-    # Is our image bigger than our new size?
-    if  (image.size[0] > size[0]) and (image.size[1] > size[1]):
-        begin = ((image.[0]-size[0])/2, (image.size[1]-size[1])/2)
-        
-        box = begin[0], begin[1], begin[0]+size[0], begin[1]+size[1]
+    # get the smaller ratio
+    r = rx if rx < ry else ry
 
-        return image.crop(box)
+    # where do we crop at?
+    cropx = newsize[0] * r
+    dx = (oldsize[0] - cropx)/2
+
+    cropy = newsize[1] * r
+    dy = (oldsize[1] - cropy)/2
+
+    # return the crop box
+    return dx, dy, cropx+dx, cropy+dy
 
 class Pyxl(object):
     '''
