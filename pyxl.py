@@ -424,7 +424,7 @@ class Pyxl(object):
         '''Creates an image based on a flickr image.'''
         self.getFlickrImage()
 
-        box = smartShape(p.image.size, p.size)
+        box = smartShape(self.image.size, self.size)
 
         self.image = self.image.crop(box)
 
