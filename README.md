@@ -14,11 +14,13 @@ from pyxl import Pyxl, buildPyxlName, savePyxlImage
 def makeImage(info, size, options):
     # lazy import like a boss
     from os.path import join, isfile
+    from hashlib import sha1
 
     p = Pyxl(info, size, options)
-    
+
+
     path = 'where/images/live'
-    fullpath = join(path, buildPyxlName(p))
+    fullpath = join(path, buildPyxlName(p, sha1))
 
     if not isfile(fullpath)
         p.draw()
