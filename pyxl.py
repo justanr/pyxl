@@ -44,8 +44,7 @@ def hexToRGB(hexStr):
 
 def RGBToHex(RGB):
     '''Converts a RGB tuple into a hex color'''
-    #TODO: Convert to new style formatting
-    return '%02x%02x%02x' % RGB
+    return '{0[0]:x}{0[1]:x}{0[2]:x}'.format(RGB)
 
 
 def calcGradDiff(startFill, stopFill, distance):
@@ -120,7 +119,7 @@ def smartShape(oldsize, newsize):
     dy = (oldsize[1] - cropy)/2
 
     # return the crop box
-    return dx, dy, cropx+dx, cropy+dy
+    return int(dx), int(dy), int(cropx+dx), int(cropy+dy)
 
 class Pyxl(object):
     '''
@@ -214,9 +213,15 @@ class Pyxl(object):
         if self.info['type'] == 'flickr':
             return ','.join(self.info['tags'])
         elif self.info['type'] == 'color':
-            return 'color:{}'.format(RGBToHex(self.info['colors'][0]))
+            # double up because (0,0,0)
+            # will convert to 000 but we want 000000
+            color = buildHex(RGBToHex(self.info['colors'][0]))
+            return 'color:{}'.format(color)
+
         else:
-            colors =  ','.join([RGBToHex(x) for x in self.info['colors']])
+            # see above about doubling up
+            colors = [buildHex(RGBToHex(x)) for x in self.info['colors']]
+            colors = ','.join(colors)
 
             if self.info['type'] == 'hgradient':
                 colors = colors + ',h'
@@ -419,13 +424,17 @@ class Pyxl(object):
         '''Creates an image based on a flickr image.'''
         self.getFlickrImage()
 
-        size = 10
+        box = smartShape(p.image.size, p.size)
+
+        self.image = self.image.crop(box)
+
+        size = 16
         font = ImageFont.truetype(self.options['font'], size)
 
         text = 'Copyright {}.'.format(self.info['user'])
 
-        pos = ( (self.size[0] - font.getsize(text))/2,
-                (self.size[1] - 2)
+        pos = ( (self.size[0] - font.getsize(text)[0])/2,
+                (self.size[1]-2)
               )
 
         draw = ImageDraw.Draw(self.image)
@@ -453,19 +462,20 @@ class Pyxl(object):
                 tags=self.info['tags'], tag_mode='all',
                 license='5,7', per_page=1)
         
-        # TODO: add what happens if the request isn't good or there aren't kids.
+        url = "http://farm{farm}.staticflickr.com/{server}/{id}_{secret}_b.jpg"
+
+        # TODO: add what happens if the request isn't good or there aren't kids
         if rsp.attrib['stat'] == 'ok':
             if len(rsp.getchildren()[0].getchildren()) == 1:
                 photo = rsp.getchildren()[0][0]
 
-                url = "http://farm{farm}.staticflickr.com/{server}/{id}_{secret}_b.jpg"
-
+                
                 uri = urllib2.urlopen(url.format(**photo.attrib))
-                self.uri = StringIO.StringIO(uri.read())
+                self.info['uri'] = StringIO.StringIO(uri.read())
 
-                self.uri.seek(0)
+                self.info['uri'].seek(0)
 
-                self.image = Image.open(self.uri)
+                self.image = Image.open(self.info['uri'])
 
                 rsp = flickr.people_getInfo(user_id=photo.attrib['owner'])
                 person = rsp.getchildren()[0]
